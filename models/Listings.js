@@ -14,4 +14,6 @@ const listingSchema = new mongoose.Schema({
     images: [string]
 }, { timestamps: true });
 
-model.exports = mongoose.model('Listing', listingSchema);
+const Listings = mongoose.model('Listing', listingSchema);
+
+export default Listings;
