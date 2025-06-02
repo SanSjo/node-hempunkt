@@ -2,6 +2,7 @@
 
 import Listing from '../models/Listings.js';
 import auth from '../middleware/authMiddleware.js';
+import express from 'express';
 
 const router = express.Router();
 
