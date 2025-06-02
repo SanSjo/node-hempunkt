@@ -10,8 +10,8 @@ const listingSchema = new mongoose.Schema({
         lng: Number
     },
     type: String,
-    area:String,
-    images: [string]
+    area: String,
+    images: [String]
 }, { timestamps: true });
 
 const Listings = mongoose.model('Listing', listingSchema);
