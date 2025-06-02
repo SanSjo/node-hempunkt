@@ -24,3 +24,5 @@ const listing = await Listing.create(data);
 res.json(listing);
 }
 );  
+
+export default router;

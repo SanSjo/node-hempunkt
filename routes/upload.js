@@ -16,4 +16,4 @@ router.post('/', auth, upload.single('file'), async (req, res) => {
     }).end(file.buffer);
 })
 
-module.exports = router;
+export default router;
