@@ -1,7 +1,7 @@
 
 
 import Listing from '../models/Listings.js';
-import auth from '../middleware/auth.js';
+import auth from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
