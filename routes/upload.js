@@ -1,7 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import cloudinary from 'cloudinary';
-import auth from '../middleware/auth.js';
+import auth from '../middleware/authMiddleware.js';
 const router = express.Router();
 const storage = multer.memoryStorage()
 const upload = multer({ storage });
