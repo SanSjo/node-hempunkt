@@ -3,47 +3,59 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 dotenv.config();
-// import authRoutes from './routes/auth.js';
-// import listingRoutes from './routes/listings.js';
-// import uploadRoutes from './routes/upload.js';
+import authRoutes from './routes/auth.js';
+import listingRoutes from './routes/listings.js';
+import uploadRoutes from './routes/upload.js';
 
 const app = express();
 
-// CORS preflight options handler - respond to OPTIONS requests
-app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Max-Age', '86400'); // 24 hours
-  res.sendStatus(204);
-});
+// CORS configuration
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  credentials: true
+}));
 
-// Enhanced CORS configuration
-app.use(cors());
+// Very important - ensure JSON body parsing is enabled with proper limits
+app.use(express.json({ limit: '10mb' }));
 
-// Middleware to add CORS headers directly to all responses
+// Request debugging middleware
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-  res.header('Access-Control-Allow-Credentials', 'true');
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log('Headers:', JSON.stringify(req.headers));
+  
+  // Store the original end method
+  const originalEnd = res.end;
+  
+  // Override the end method to log the response status
+  res.end = function(chunk, encoding) {
+    console.log(`Response status: ${res.statusCode}`);
+    return originalEnd.call(this, chunk, encoding);
+  };
+  
   next();
 });
 
+// Body logging middleware
+app.use((req, res, next) => {
+  if (req.method === 'POST' || req.method === 'PUT') {
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+  }
+  next();
+});
 
-
-app.use(express.json());
-// app.use('/api/auth', authRoutes);
-// app.use('/api/listings', listingRoutes);
-// app.use('/api/upload', uploadRoutes);
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/listings', listingRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Test endpoint to verify server is working
 app.get('/', (req, res) => {
   res.send('Server is alive');
 });
 
-// Force port 3000 explicitly
+// Port configuration - using 3000
 const PORT = 3000;
 
 mongoose.connect(process.env.MONGO_URI).then(() => {
