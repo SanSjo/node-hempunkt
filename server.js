@@ -3,9 +3,9 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 dotenv.config();
-import authRoutes from './routes/auth.js';
-import listingRoutes from './routes/listings.js';
-import uploadRoutes from './routes/upload.js';
+// import authRoutes from './routes/auth.js';
+// import listingRoutes from './routes/listings.js';
+// import uploadRoutes from './routes/upload.js';
 
 const app = express();
 
@@ -31,10 +31,12 @@ app.use((req, res, next) => {
   next();
 });
 
+
+
 app.use(express.json());
-app.use('/api/auth', authRoutes);
-app.use('/api/listings', listingRoutes);
-app.use('/api/upload', uploadRoutes);
+// app.use('/api/auth', authRoutes);
+// app.use('/api/listings', listingRoutes);
+// app.use('/api/upload', uploadRoutes);
 
 // Test endpoint to verify server is working
 app.get('/', (req, res) => {
