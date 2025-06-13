@@ -44,6 +44,11 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send("Something broke!");
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/listings', listingRoutes);
