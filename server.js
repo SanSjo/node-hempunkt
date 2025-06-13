@@ -33,7 +33,6 @@ app.use((req, res, next) => {
     console.log(`Response status: ${res.statusCode}`);
     return originalEnd.call(this, chunk, encoding);
   };
-  
   next();
 });
 
