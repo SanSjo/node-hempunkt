@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { v2 as cloudinary } from 'cloudinary';
+import cloudinary from '../utils/cloudinary.js';
 import auth from '../middleware/authMiddleware.js';
 const router = express.Router();
 const storage = multer.memoryStorage()
@@ -11,6 +11,12 @@ router.post('/', auth, upload.single('file'), async (req, res) => {
         const file = req.file;
         if (!file) {
             return res.status(400).json({ error: 'No file uploaded' });
+        }
+        
+        // Check if Cloudinary is properly configured
+        if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+            console.error('Cloudinary environment variables are not properly set');
+            return res.status(500).json({ error: 'Image upload service is not configured properly' });
         }
         
         const result = await new Promise((resolve, reject) => {
@@ -27,7 +33,7 @@ router.post('/', auth, upload.single('file'), async (req, res) => {
         res.json({ url: result.secure_url });
     } catch (error) {
         console.error('Upload error:', error);
-        res.status(500).json({ error: 'Failed to upload image' });
+        res.status(500).json({ error: 'Failed to upload image', details: error.message });
     }
 })
 
