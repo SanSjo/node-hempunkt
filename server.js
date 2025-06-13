@@ -69,13 +69,41 @@ app.use((err, req, res, next) => {
 // Port configuration - ensuring Railway can assign its own port
 const PORT = process.env.PORT || 3000;
 
-// Improved startup sequence with more detailed error handling
+// Improved startup sequence with better MongoDB connection handling
 const startServer = async () => {
   try {
     console.log('Attempting to connect to MongoDB...');
-    // Connect to MongoDB with more explicit options
+    
+    // Safely log parts of the MongoDB URI for diagnostics without exposing credentials
+    if (process.env.MONGO_URI) {
+      const sanitizedUri = process.env.MONGO_URI.replace(
+        /mongodb(\+srv)?:\/\/([^:]+):([^@]+)@/,
+        'mongodb$1://$2:***@'
+      );
+      console.log('MongoDB connection string format:', sanitizedUri);
+      
+      // Parse the URI to check for common issues
+      try {
+        const url = new URL(process.env.MONGO_URI);
+        console.log('MongoDB connection details:');
+        console.log('- Protocol:', url.protocol);
+        console.log('- Host:', url.hostname);
+        console.log('- Database:', url.pathname.substr(1) || '(none specified)');
+        console.log('- Parameters:', url.search ? 'present' : 'none');
+      } catch (parseError) {
+        console.error('Invalid MongoDB URI format:', parseError.message);
+      }
+    } else {
+      console.error('MONGO_URI environment variable is not defined!');
+    }
+    
+    // Connect to MongoDB with more explicit options and better error handling
     await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      retryWrites: true,
+      retryReads: true
     });
     console.log('MongoDB connected successfully');
     
@@ -100,13 +128,21 @@ const startServer = async () => {
     });
   } catch (error) {
     console.error('Failed to start server:', error);
+    
     // More detailed MongoDB connection error handling
-    if (error.name === 'MongoServerSelectionError') {
-      console.error('Could not connect to MongoDB. Please check:');
-      console.error('1. Is your MONGO_URI environment variable set correctly?');
-      console.error('2. Is your MongoDB server running?');
-      console.error('3. Does your MongoDB server allow connections from this IP?');
+    if (error.name === 'MongooseServerSelectionError' || error.name === 'MongoNetworkError') {
+      console.error('\n===== MONGODB CONNECTION ERROR =====');
+      console.error('Could not connect to MongoDB Atlas. Common reasons:');
+      console.error('1. IP Access List: Your current IP is not whitelisted in MongoDB Atlas');
+      console.error('   Solution: Add 0.0.0.0/0 to your Atlas IP Access List to allow connections from anywhere');
+      console.error('   Atlas dashboard → Network Access → Add IP Address → Allow Access from Anywhere');
+      console.error('2. Incorrect credentials or connection string format');
+      console.error('   Solution: Double-check username, password, and cluster address in your MONGO_URI');
+      console.error('3. Network restrictions or VPC configuration');
+      console.error('   Solution: Check if your MongoDB Atlas cluster has any VPC or private network settings');
+      console.error('========================================\n');
     }
+    
     process.exit(1); // Exit with error code
   }
 };
